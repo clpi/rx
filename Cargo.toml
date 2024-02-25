@@ -1,11 +1,19 @@
 [package]
-name = "cranelift-jit-demo"
+name = "rx"
 version = "0.0.0"
 authors = ["The Cranelift Project Developers"]
 license = "Apache-2.0 WITH LLVM-exception"
 repository = "https://github.com/bytecodealliance/cranelift-jit-demo"
 description = "Toy language implemented using cranelift-jit"
 edition = "2018"
+
+[[bin]]
+name = "lang"
+path = "src/bin/lang.rs"
+
+[lib]
+name = "rx"
+path = "src/lib.rs"
 
 [dependencies]
 peg = "0.8.1"
@@ -20,3 +28,7 @@ itertools = "0.12.1"
 codespan-reporting = "0.11.1"
 indexmap = { version = "2.2.3", features = ["arbitrary"] }
 cranelift-codegen = { version = "0.105.1", features = ["anyhow", "souper-ir", "trace-log", "sha2", "incremental-cache", "bincode", "souper-harvest", "disas"] }
+cranelift-frontend = { version = "0.105.1", features = ["hashbrown", "core"] }
+cranelift-bforest = "0.105.1"
+cranelift-codegen-shared = "0.105.1"
+target-lexicon = { version = "0.12.14", features = ["std"] }
