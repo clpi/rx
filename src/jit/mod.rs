@@ -1,11 +1,14 @@
-use crate::frontend::*;
+use crate::parse::grammar;
+use crate::ast::Expr;
 use cranelift::prelude::*;
 use cranelift_jit::{JITBuilder, JITModule};
 use cranelift_module::{DataDescription, Linkage, Module};
+use num_traits::CheckedMul;
 use std::collections::HashMap;
 use std::slice;
 
 /// The basic JIT class.
+#[derive()]
 pub struct JIT {
     /// The function builder context, which is reused across multiple
     /// FunctionBuilder instances.
@@ -52,7 +55,7 @@ impl JIT {
     pub fn compile(&mut self, input: &str) -> Result<*const u8, String> {
         // First, parse the string, producing AST nodes.
         let (name, params, the_return, stmts) =
-            parser::function(input).map_err(|e| e.to_string())?;
+            grammar::parser::function(input).map_err(|e| e.to_string())?;
 
         // Then, translate the AST nodes into Cranelift IR.
         self.translate(params, the_return, stmts)?;
@@ -190,38 +193,63 @@ struct FunctionTranslator<'a> {
     module: &'a mut JITModule,
 }
 
+
+
 impl<'a> FunctionTranslator<'a> {
     /// When you write out instructions in Cranelift, you get back `Value`s. You
     /// can then use these references in other instructions.
+    fn eval(&mut self, e: Box<Expr>) -> Value {
+        self.translate_expr(*e)
+    }
+    fn lreval(&mut self, l: Box<Expr>, r: Box<Expr>) -> (Value, Value) {
+        (self.translate_expr(*l), self.translate_expr(*r))
+    }
     fn translate_expr(&mut self, expr: Expr) -> Value {
         match expr {
             Expr::Literal(literal) => {
                 let imm: i32 = literal.parse().unwrap();
                 self.builder.ins().iconst(self.int, i64::from(imm))
             }
-
-            Expr::Add(lhs, rhs) => {
-                let lhs = self.translate_expr(*lhs);
-                let rhs = self.translate_expr(*rhs);
-                self.builder.ins().iadd(lhs, rhs)
+            Expr::Xor(l, r) => {
+                let (l, r) = self.lreval(l, r);
+                self.builder.ins().bxor(l, r)
+            }
+            Expr::Not(e) => {
+                let e = self.eval(e);
+                self.builder.ins().bnot(e)
+            }
+            Expr::And(l, r) => {
+                let (l, r) = self.lreval(l, r);
+                self.builder.ins().band(l, r)
+            }
+            Expr::Or(l, r) => {
+                let (l, r) = self.lreval(l, r);
+                self.builder.ins().bor(l, r)
             }
 
-            Expr::Sub(lhs, rhs) => {
-                let lhs = self.translate_expr(*lhs);
-                let rhs = self.translate_expr(*rhs);
-                self.builder.ins().isub(lhs, rhs)
+            Expr::Add(l, r) => {
+                let (l, r) = self.lreval(l, r);
+                self.builder.ins().iadd(l, r)
             }
 
-            Expr::Mul(lhs, rhs) => {
-                let lhs = self.translate_expr(*lhs);
-                let rhs = self.translate_expr(*rhs);
-                self.builder.ins().imul(lhs, rhs)
+            Expr::Sub(l, r) => {
+                let (l, r) = self.lreval(l, r);
+                self.builder.ins().isub(l, r)
             }
 
-            Expr::Div(lhs, rhs) => {
-                let lhs = self.translate_expr(*lhs);
-                let rhs = self.translate_expr(*rhs);
-                self.builder.ins().udiv(lhs, rhs)
+            Expr::Mul(l, r) => {
+                let (l, r) = self.lreval(l, r);
+                self.builder.ins().imul(l, r)
+            }
+
+            Expr::Div(l, r) => {
+                let (l, r) = self.lreval(l, r);
+                self.builder.ins().udiv(l, r)
+            }
+            Expr::Pow(l, r) => {
+                let (l, r) = self.lreval(l, r);
+                let res = l.as_u32().checked_pow(r.as_u32()).expect("Power shohuld work");
+                self.builder.ins().iconst(self.int, i64::from(res))
             }
 
             Expr::Eq(lhs, rhs) => self.translate_icmp(IntCC::Equal, *lhs, *rhs),

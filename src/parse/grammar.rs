@@ -1,23 +1,4 @@
-/// The AST node for expressions.
-pub enum Expr {
-    Literal(String),
-    Identifier(String),
-    Assign(String, Box<Expr>),
-    Eq(Box<Expr>, Box<Expr>),
-    Ne(Box<Expr>, Box<Expr>),
-    Lt(Box<Expr>, Box<Expr>),
-    Le(Box<Expr>, Box<Expr>),
-    Gt(Box<Expr>, Box<Expr>),
-    Ge(Box<Expr>, Box<Expr>),
-    Add(Box<Expr>, Box<Expr>),
-    Sub(Box<Expr>, Box<Expr>),
-    Mul(Box<Expr>, Box<Expr>),
-    Div(Box<Expr>, Box<Expr>),
-    IfElse(Box<Expr>, Vec<Expr>, Vec<Expr>),
-    WhileLoop(Box<Expr>, Vec<Expr>),
-    Call(String, Vec<Expr>),
-    GlobalDataAddr(String),
-}
+use crate::ast::Expr;
 
 peg::parser!(pub grammar parser() for str {
     pub rule function() -> (String, Vec<String>, String, Vec<Expr>)
@@ -64,8 +45,18 @@ peg::parser!(pub grammar parser() for str {
         a:@ _ ">"  _ b:(@) { Expr::Gt(Box::new(a), Box::new(b)) }
         a:@ _ ">=" _ b:(@) { Expr::Ge(Box::new(a), Box::new(b)) }
         --
+        a:@ _ "and" _ b:(@) { Expr::And(Box::new(a), Box::new(b)) }
+        a:@ _ "not" _ b:(@) { Expr::Not(Box::new(a))}
+        a:@ _ "or" _ b:(@) { Expr::Or(Box::new(a), Box::new(b)) }
+        a:@ _ "xor" _ b:(@) { Expr::Xor(Box::new(a), Box::new(b)) }
+        a:@ _ "&&" _ b:(@) { Expr::And(Box::new(a), Box::new(b)) }
+        a:@ _ "||" _ b:(@) { Expr::Or(Box::new(a), Box::new(b)) }
+        a:@ _ "^^" _ b:(@) { Expr::Xor(Box::new(a), Box::new(b)) }
+        --
         a:@ _ "+" _ b:(@) { Expr::Add(Box::new(a), Box::new(b)) }
         a:@ _ "-" _ b:(@) { Expr::Sub(Box::new(a), Box::new(b)) }
+        x:@ "^"     b:(@) { Expr::Pow(Box::new(x), Box::new(b))}
+
         --
         a:@ _ "*" _ b:(@) { Expr::Mul(Box::new(a), Box::new(b)) }
         a:@ _ "/" _ b:(@) { Expr::Div(Box::new(a), Box::new(b)) }

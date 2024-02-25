@@ -9,7 +9,14 @@ edition = "2018"
 
 [dependencies]
 peg = "0.8.1"
-cranelift = "0.97.1"
-cranelift-module = "0.97.1"
-cranelift-jit = "0.97.1"
-cranelift-native = "0.97.1"
+cranelift = "0.105.1"
+cranelift-module = "0.105.1"
+cranelift-jit = "0.105.1"
+cranelift-native = "0.105.1"
+num-traits = "0.2.18"
+num-derive = "0.4.2"
+anyhow = { version = "1.0.80", features = ["backtrace"] }
+itertools = "0.12.1"
+codespan-reporting = "0.11.1"
+indexmap = { version = "2.2.3", features = ["arbitrary"] }
+cranelift-codegen = { version = "0.105.1", features = ["anyhow", "souper-ir", "trace-log", "sha2", "incremental-cache", "bincode", "souper-harvest", "disas"] }
