@@ -16,7 +16,7 @@ name = "rx"
 path = "src/lib.rs"
 
 [dependencies]
-peg = "0.8.1"
+peg = "0.8.2"
 cranelift = "0.105.1"
 cranelift-module = "0.105.1"
 cranelift-jit = "0.105.1"
@@ -32,3 +32,5 @@ cranelift-frontend = { version = "0.105.1", features = ["hashbrown", "core"] }
 cranelift-bforest = "0.105.1"
 cranelift-codegen-shared = "0.105.1"
 target-lexicon = { version = "0.12.14", features = ["std"] }
+cranelift-control = "0.105.1"
+derive_more = { version = "0.99.17", features = ["peg", "generate-parsing-rs", "track-caller"] }

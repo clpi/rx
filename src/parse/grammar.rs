@@ -38,6 +38,9 @@ peg::parser!(pub grammar parser() for str {
         = i:identifier() _ "=" _ e:expression() {Expr::Assign(i, Box::new(e))}
 
     rule binary_op() -> Expr = precedence!{
+        _ "not" _ a:(@) { Expr::Not(Box::new(a))}
+        _ "!" _ a:(@) { Expr::Not(Box::new(a))}
+        --
         a:@ _ "==" _ b:(@) { Expr::Eq(Box::new(a), Box::new(b)) }
         a:@ _ "!=" _ b:(@) { Expr::Ne(Box::new(a), Box::new(b)) }
         a:@ _ "<"  _ b:(@) { Expr::Lt(Box::new(a), Box::new(b)) }
@@ -46,7 +49,6 @@ peg::parser!(pub grammar parser() for str {
         a:@ _ ">=" _ b:(@) { Expr::Ge(Box::new(a), Box::new(b)) }
         --
         a:@ _ "and" _ b:(@) { Expr::And(Box::new(a), Box::new(b)) }
-        a:@ _ "not" _ b:(@) { Expr::Not(Box::new(a))}
         a:@ _ "or" _ b:(@) { Expr::Or(Box::new(a), Box::new(b)) }
         a:@ _ "xor" _ b:(@) { Expr::Xor(Box::new(a), Box::new(b)) }
         a:@ _ "&&" _ b:(@) { Expr::And(Box::new(a), Box::new(b)) }
